@@ -85,37 +85,34 @@
             });
             $('#noThumb_' + selector).show();
             $('#nT_' + selector).show();
-            $('#noThumb_' + selector).prop('checked', false);
+            $('#noThumb_' + selector).removeAttr('checked');
             images = "";
         }
 
 
-        function noThumbAction(noThumb, inputCheckbox) {
-            if (!noThumb) {
-                inputCheckbox.prop('checked', true);
-                $('#imagePreview_' + selector + '_' + photoNumber).css({
-                    'display': 'none'
-                });
-                $('#whiteImage_' + selector).css({
-                    'display': 'block'
-                });
-                $('#previewContent_' + selector).css({
-                    'width': '500px'
-                });
+        function noThumbAction(inputCheckbox, src) {
+
+            var value = src === 'parent' ? !inputCheckbox.prop("checked") : inputCheckbox.prop("checked");
+
+            inputCheckbox.prop('checked', value);
+
+            $('#imagePreview_' + selector + '_' + photoNumber).css({
+                'display': !value ? 'block' : 'none'
+            });
+            $('#whiteImage_' + selector).css({
+                'display': !value ? 'none' : 'block'
+            });
+            $('#previewContent_' + selector).css({
+                'width': !value ? '355px' : '500px'
+            });
+
+            if (value === true) {
                 $('#previewButtons_' + selector).hide();
             } else {
-                inputCheckbox.prop('checked', false);
-                $('#imagePreview_' + selector + '_' + photoNumber).css({
-                    'display': 'block'
-                });
-                $('#whiteImage_' + selector).css({
-                    'display': 'none'
-                });
-                $('#previewContent_' + selector).css({
-                    'width': '355px'
-                });
                 $('#previewButtons_' + selector).show();
+
             }
+
         }
 
         function iframenize(obj) {
@@ -228,7 +225,8 @@
 
                             if (firstPosted === false) {
                                 firstPosted = true;
-                                $('#previewPreviousImg_' + selector).click(function () {
+                                $('#previewPreviousImg_' + selector).unbind('click').click(function (e) {
+                                    e.stopPropagation();
                                     if (images.length > 1) {
                                         photoNumber = parseInt($('#photoNumber_' + selector).val());
                                         $('#imagePreview_' + selector + '_' + photoNumber).css({
@@ -251,7 +249,8 @@
                                         $('#photoNumbers_' + selector).html(parseInt(photoNumber + 1) + " of " + images.length);
                                     }
                                 });
-                                $('#previewNextImg_' + selector).click(function () {
+                                $('#previewNextImg_' + selector).unbind('click').click(function (e) {
+                                    e.stopPropagation();
                                     if (images.length > 1) {
                                         photoNumber = parseInt($('#photoNumber_' + selector).val());
                                         $('#imagePreview_' + selector + '_' + photoNumber).css({
@@ -293,19 +292,16 @@
                             $('#noThumb_' + selector).hide();
                             $('#nT_' + selector).hide();
                         }
-                        if (nT === false) {
-                            nT = true;
-                            $('#noThumbDiv_' + selector).click(function () {
-                                var inputCheckbox = $(this).find('input[type=checkbox]');
-                                var noThumb = inputCheckbox.prop('checked');
-                                noThumbAction(noThumb, inputCheckbox);
-                            });
-                        }
-                        $('#noThumb_' + selector).click(function () {
-                            var noThumb = $(this).prop("checked");
-                            noThumbAction(noThumb, $(this));
+                        $('#nT_' + selector).unbind('click').click(function (e) {
+                            e.stopPropagation();
+                            noThumbAction($('#noThumb_' + selector), 'parent');
                         });
-                        $('#previewSpanTitle_' + selector).click(function () {
+                        $('#noThumb_' + selector).unbind('click').click(function (e) {
+                            e.stopPropagation();
+                            noThumbAction($(this), 'input');
+                        });
+                        $('#previewSpanTitle_' + selector).unbind('click').click(function (e) {
+                            e.stopPropagation();
                             if (blockTitle === false) {
                                 blockTitle = true;
                                 $('#previewSpanTitle_' + selector).hide();
@@ -328,7 +324,8 @@
                                 $('#previewInputTitle_' + selector).hide();
                             }
                         });
-                        $('#previewSpanDescription_' + selector).click(function () {
+                        $('#previewSpanDescription_' + selector).unbind('click').click(function (e) {
+                            e.stopPropagation();
                             if (blockDescription === false) {
                                 blockDescription = true;
                                 $('#previewSpanDescription_' + selector).hide();
@@ -371,7 +368,8 @@
                                 "background-color": "transparent"
                             });
                         });
-                        $('#closePreview_' + selector).click(function () {
+                        $('#closePreview_' + selector).unbind('click').click(function (e) {
+                            e.stopPropagation();
                             block = false;
                             hrefUrl = '';
                             fancyUrl = '';
@@ -413,7 +411,8 @@
         });
 
 
-        $('#postPreviewButton_' + selector).click(function () {
+        $('#postPreviewButton_' + selector).unbind('click').click(function (e) {
+            e.stopPropagation();
 
             imageId = "";
             pTP = "";
@@ -427,7 +426,8 @@
                     text: text,
                     description: description
                 }, function (urls) {
-                    if ($('#noThumb_' + selector).prop("checked") || images.length === 0) {
+
+                    if ($('#noThumb_' + selector).prop('checked') || images.length === 0) {
                         contentWidth = 495;
                         leftSideContent = "";
                     } else if (images || video) {
@@ -439,7 +439,7 @@
                             pDP = "pDP" + imageId;
                             var imageIdPrefixed = "img" + imageId;
                             image = "<img id='" + imageIdPrefixed + "' src='" + $('#imagePreview_' + selector + '_' + photoNumber).prop("src") + "' class='imgIframe' style='width: 130px; height: auto; float: left;' ></img>";
-                            videoPlay = '<span class="videoPostPlay"></span>';
+                            videoPlay = '<span class="videoPostPlay" id="videoPostPlay' + imageId + '"></span>';
                             leftSideContent = image + videoPlay;
                         } else {
                             image = "<img src='" + $('#imagePreview_' + selector + '_' + photoNumber).prop("src") + "' style='width: 130px; height: auto; float: left;' ></img>";
@@ -456,48 +456,62 @@
                     }
 
 
-                    content = '<div class="previewPosted">' + '<div class="previewTextPosted">' + urls.urls + '</div>' + videoIframe + '<div class="previewImagesPosted">' + '<div class="previewImagePosted">' + leftSideContent + '</div>' + '</div>' + '<div class="previewContentPosted">' + '<div class="previewTitlePosted" id="' + pTP + '" style="width: ' + contentWidth + 'px" ><a href="' + hrefUrl + '" target="_blank">' + title + '</a></div>' + '<div class="previewUrlPosted">' + fancyUrl + '</div>' + '<div class="previewDescriptionPosted" id="' + pDP + '" style="width: ' + contentWidth + 'px" >' + urls.description + '</div>' + '</div>' + '<div style="clear: both"></div>' + '</div>';
-
                     /** Database insert */
                     $.post('php/save.php', {
                         text: $('#text_' + selector).val(),
-                        image: $('#imagePreview_' + selector + '_' + photoNumber).prop("src"),
+                        image: $('#noThumb_' + selector).prop("checked") ? '' : $('#imagePreview_' + selector + '_' + photoNumber).prop("src"),
                         title: title,
                         canonicalUrl: fancyUrl,
                         url: hrefUrl,
                         description: $('#previewSpanDescription_' + selector).html(),
                         iframe: videoIframe
                     }, function (response) {
-                        
-                        // alert(response);
 
-                    });
+                        // console.log(response);
 
-                    $('#preview_' + selector).fadeOut("fast", function () {
+                        var id = !isNaN(response) ? response : Math.floor((Math.random() * 1000000000) + 1);
 
-                        // Vine video needs to be preloaded
-                        if (hrefUrl.indexOf("vine.co") != -1) {
-                            setTimeout(function () {
-                                $('#' + imageId).hide();
-                            }, 50);
+                        content = '<div class="previewPosted" id="contentWrap' + id + '" >' + '<div class="previewTextPosted">' + urls.urls + '</div>' + videoIframe + '<div class="previewImagesPosted">' + '<div class="previewImagePosted">' + leftSideContent + '</div>' + '</div>' + '<div class="previewContentPosted">' + '<div class="previewTitlePosted" id="' + pTP + '" style="width: ' + contentWidth + 'px" ><a href="' + hrefUrl + '" target="_blank">' + title + '</a></div>' + '<div class="previewUrlPosted">' + fancyUrl + '</div>' + '<div class="previewDescriptionPosted" id="' + pDP + '" style="width: ' + contentWidth + 'px" >' + urls.description + '</div>' + '</div><div style="clear: both"><span style="color: red; cursor: pointer; float: right" id="delete_action_' + id + '" ref="' + id + '">delete</span></div></div>';
 
-                        }
+                        $('#preview_' + selector).fadeOut("fast", function () {
 
-                        $('#text_' + selector).css({
-                            "border": "1px solid #b3b3b3",
-                            "border-bottom": "1px solid #e6e6e6"
-                        });
-                        $('#text_' + selector).val("");
-                        $('#previewImage_' + selector).html("");
-                        $('#previewTitle_' + selector).html("");
-                        $('#previewUrl_' + selector).html("");
-                        $('#previewDescription_' + selector).html("");
-                        $(content).hide().prependTo('#previewPostedList_' + selector).fadeIn("fast");
-                        $(".imgIframe").click(function () {
-                            iframenize($(this));
-                        });
-                        $(".videoPostPlay").click(function () {
-                            iframenize($(this).parent().find(".imgIframe"));
+                            // Vine video needs to be preloaded
+                            if (hrefUrl.indexOf("vine.co") != -1) {
+                                setTimeout(function () {
+                                    $('#' + imageId).hide();
+                                }, 50);
+
+                            }
+
+                            $('#text_' + selector).css({
+                                "border": "1px solid #b3b3b3",
+                                "border-bottom": "1px solid #e6e6e6"
+                            });
+                            $('#text_' + selector).val("");
+                            hrefUrl = "";
+                            $('#previewImage_' + selector).html("");
+                            $('#previewTitle_' + selector).html("");
+                            $('#previewUrl_' + selector).html("");
+                            $('#previewDescription_' + selector).html("");
+                            $(content).hide().prependTo('#previewPostedList_' + selector).fadeIn("fast");
+                            $(".imgIframe").unbind('click').click(function (e) {
+                                e.stopPropagation();
+                                iframenize($(this));
+                            });
+                            $('#videoPostPlay' + imageId).click(function (e) {
+                                e.stopPropagation();
+                                iframenize($(this).parent().find(".imgIframe"));
+                            });
+
+                            $("#delete_action_" + id).click(function () {
+                                var id = $(this).attr("ref");
+                                $.post('php/delete.php', {id: id}, function (answer) {
+                                    // console.log(answer);
+                                    $("#contentWrap" + id).remove();
+                                });
+                            });
+
+
                         });
 
                     });
@@ -512,4 +526,5 @@
         }
 
     };
+
 })(jQuery);

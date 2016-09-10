@@ -18,12 +18,27 @@ class Database
     {
         $conn = Database::connect();
 
-        $save["text"] = mysql_real_escape_string($save["text"]);
-        $save["title"] = mysql_real_escape_string($save["title"]);
-        $save["description"] = mysql_real_escape_string($save["description"]);
+        $save = array_map("mysql_real_escape_string", $save);
 
         $query = "INSERT INTO `linkpreview`.`linkpreview` (`id`, `text`, `image`, `title`, `canonicalUrl`, `url`, `description`, `iframe`)
                         VALUES (NULL, '" . $save["text"] . "', '" . $save["image"] . "', '" . $save["title"] . "', '" . $save["canonicalUrl"] . "', '" . $save["url"] . "', '" . $save["description"] . "', '" . $save["iframe"] . "')";
+
+        mysql_query($query);
+
+        $id = mysql_insert_id($conn);
+
+        Database::close($conn);
+
+        return $id;
+    }
+
+    static function delete($delete)
+    {
+        $conn = Database::connect();
+
+        $delete = array_map("mysql_real_escape_string", $delete);
+
+        $query = "DELETE FROM `linkpreview`.`linkpreview` WHERE `id` = '" . $delete["id"] . "'";
 
         mysql_query($query);
 
